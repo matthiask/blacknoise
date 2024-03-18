@@ -20,10 +20,13 @@ pip install blacknoise
 
 ```python
 from blacknoise import BlackNoise
+from django.core.asgi import get_asgi_application
 from pathlib import Path
 
+BASE_DIR = Path(__file__).parent
+
 application = BlackNoise(get_asgi_application())
-application.add(Path(__file__).parent / "static", "/static")
+application.add(BASE / "static", "/static")
 ```
 
 ## License
