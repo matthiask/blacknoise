@@ -28,12 +28,11 @@ class Blacknoise:
         path = os.path.normpath(scope["path"].removeprefix(scope["root_path"]))
         if not path.startswith(self._prefixes):
             await self._application(scope, receive, send)
-            return
 
-        if scope["type"] != "http" or scope["method"] not in ("GET", "HEAD"):
+        elif scope["type"] != "http" or scope["method"] not in ("GET", "HEAD"):
             raise HTTPException(status_code=405)
 
-        if file := self._files.get(path):
+        elif file := self._files.get(path):
             headers = {
                 "access-control-allow-origin": "*",
                 "cache-control": (
@@ -42,6 +41,5 @@ class Blacknoise:
             }
             response = FileResponse(file, headers=headers)
             await response(scope, receive, send)
-            return
-
-        raise HTTPException(status_code=404)
+        else:
+            raise HTTPException(status_code=404)
