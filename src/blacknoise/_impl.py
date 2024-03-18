@@ -9,7 +9,7 @@ FOREVER = f"max-age={10 * 365 * 24 * 60 * 60}, public, immutable"
 A_LITTE_WHILE = "max-age=60, public"
 
 
-class Blacknoise:
+class BlackNoise:
     def __init__(self, application, *, immutable_file_test=lambda *_a: False):
         self._files = {}
         self._prefixes = ()

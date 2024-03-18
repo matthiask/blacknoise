@@ -3,6 +3,6 @@
 # SPDX-License-Identifier: MIT
 
 try:
-    from blacknoise._impl import Blacknoise  # noqa
+    from blacknoise._impl import BlackNoise  # noqa
 except ModuleNotFoundError:
     pass
