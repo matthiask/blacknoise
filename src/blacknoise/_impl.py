@@ -20,12 +20,15 @@ class BlackNoise:
     def add(self, path, prefix):
         self._prefixes += (prefix,)
         for base, _dirs, files in os.walk(path):
+            path_prefix = os.path.join(prefix, base[len(path) :].strip("/"))
             self._files |= {
-                os.path.join(prefix, file): os.path.join(base, file) for file in files
+                os.path.join(path_prefix, file): os.path.join(base, file)
+                for file in files
             }
 
     async def __call__(self, scope, receive, send):
         path = os.path.normpath(scope["path"].removeprefix(scope["root_path"]))
+
         if not path.startswith(self._prefixes):
             await self._application(scope, receive, send)
 
