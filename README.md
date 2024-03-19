@@ -56,8 +56,8 @@ python -m blacknoise.compress static/
 
 `BlackNoise` will try compress non-binary files using gzip or brotli (if the
 [Brotli](ttps://pypi.org/project/Brotli/) library is available), and will serve
-the gzip encoded version if the compression actually results in (significantly)
-smaller files.
+the compressed version if the compression actually results in (significantly)
+smaller files and if the client also supports it.
 
 Far-future expiry headers can be enabled by passing the `immutable_file_test`
 callable to the `BlackNoise` constructor:
