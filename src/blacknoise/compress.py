@@ -56,6 +56,8 @@ def try_gzip(path):
                 f"{path!s} has been shrinked by {orig_len - gz_len} bytes to {int(100 * len(gz_bytes) / len(orig_bytes))}%"
             )
             Path(str(path) + ".gz").write_bytes(gz_bytes)
+        else:
+            print(f"{path!s} has been skipped because of missing gains")
 
 
 def main():
