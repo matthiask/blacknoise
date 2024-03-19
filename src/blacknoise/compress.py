@@ -46,35 +46,41 @@ SKIP_COMPRESS_EXTENSIONS = (
 )
 
 
+def _write_if_smaller(path, orig_bytes, compress_bytes, algorithm, suffix):
+    orig_len = len(orig_bytes)
+    compress_len = len(compress_bytes)
+    if compress_len < orig_len * 0.9:
+        print(
+            f"{path!s} has been shrinked by {algorithm} by {orig_len - compress_len} bytes to {int(100 * len(compress_bytes) / len(orig_bytes))}%"
+        )
+        Path(str(path) + suffix).write_bytes(compress_bytes)
+    else:
+        print(f"{path!s} has been skipped because of missing gains")
+
+
 def try_gzip(path, orig_bytes):
     with io.BytesIO() as f:
         with gzip.GzipFile(
             filename="", mode="wb", fileobj=f, compresslevel=9, mtime=0
         ) as compress_file:
             compress_file.write(orig_bytes)
-        compress_bytes = f.getvalue()
-        orig_len = len(orig_bytes)
-        compress_len = len(compress_bytes)
-        if compress_len < orig_len * 0.9:
-            print(
-                f"{path!s} has been shrinked by Gzip by {orig_len - compress_len} bytes to {int(100 * len(compress_bytes) / len(orig_bytes))}%"
-            )
-            Path(str(path) + ".gz").write_bytes(compress_bytes)
-        else:
-            print(f"{path!s} has been skipped because of missing gains")
+        _write_if_smaller(
+            path,
+            orig_bytes,
+            f.getvalue(),
+            "Gzip",
+            ".gz",
+        )
 
 
 def try_brotli(path, orig_bytes):
-    compress_bytes = brotli.compress(orig_bytes)
-    orig_len = len(orig_bytes)
-    compress_len = len(compress_bytes)
-    if compress_len < orig_len * 0.9:
-        print(
-            f"{path!s} has been shrinked by Brotli by {orig_len - compress_len} bytes to {int(100 * len(compress_bytes) / len(orig_bytes))}%"
-        )
-        Path(str(path) + ".br").write_bytes(compress_bytes)
-    else:
-        print(f"{path!s} has been skipped because of missing gains")
+    _write_if_smaller(
+        path,
+        orig_bytes,
+        brotli.compress(orig_bytes),
+        "Brotli",
+        ".br",
+    )
 
 
 def compress(root):
