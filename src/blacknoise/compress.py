@@ -60,11 +60,7 @@ def try_gzip(path):
             print(f"{path!s} has been skipped because of missing gains")
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("root", help="Path containing static files to compress")
-    args = parser.parse_args()
-
+def compress(root):
     for root, _dirs, files in os.walk(args.root):
         dir = Path(root)
         for filename in files:
@@ -78,5 +74,12 @@ def main():
     return 0
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("root", help="Path containing static files to compress")
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    args = parse_args()
+    raise SystemExit(compress(args.root))
