@@ -68,3 +68,22 @@ async def test_static_file_serving(bn):
         r = await client.get("/blub")
         assert r.status_code == 200
         assert r.text == "Hello from /blub"
+
+
+@pytest.mark.asyncio
+async def test_accept_encoding(bn):
+    transport = httpx.ASGITransport(app=bn)
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
+        r = await client.get("/static/hello.txt", headers={"accept-encoding": "gzip"})
+        assert r.status_code == 200
+        assert r.text == "world\n"
+        assert r.headers["content-encoding"] == "gzip"
+
+        r = await client.get(
+            "/static/hello.txt", headers={"accept-encoding": "identity"}
+        )
+        assert r.status_code == 200
+        assert r.text == "world\n"
+        assert "content-encoding" not in r.headers

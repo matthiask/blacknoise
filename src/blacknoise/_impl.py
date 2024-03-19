@@ -1,5 +1,6 @@
 import os
 
+from starlette.datastructures import Headers
 from starlette.responses import FileResponse, PlainTextResponse
 
 # Ten years is what nginx sets a max age if you use 'expires max;'
@@ -51,7 +52,11 @@ class BlackNoise:
                     FOREVER if self._immutable_file_test(path) else A_LITTE_WHILE
                 ),
             }
+            accept_encoding = Headers(scope=scope).get("accept-encoding", "")
             for suffix, encoding in _compress_content_encodings.items():
+                if encoding not in accept_encoding:
+                    continue
+
                 if file.endswith(suffix):
                     response = FileResponse(
                         file, headers=headers | {"content-encoding": encoding}
