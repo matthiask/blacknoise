@@ -41,14 +41,17 @@ async def test_static_file_serving(bn):
         r = await client.get("/static/hello.txt")
         assert r.status_code == 200
         assert r.text == "world\n"
+        assert r.headers["content-encoding"] == "gzip"
 
         r = await client.get("/static/hello2.txt.gz")
         assert r.status_code == 200
         assert r.text == "world2\n"
+        assert r.headers["content-encoding"] == "gzip"
 
         r = await client.get("/static/hello3.txt")
         assert r.status_code == 200
         assert r.text == "world3\n"
+        assert "content-encoding" not in r.headers
 
         r = await client.post("/static/hello.txt")
         assert r.status_code == 405
