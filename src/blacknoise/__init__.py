@@ -4,5 +4,5 @@
 
 try:
     from blacknoise._impl import BlackNoise  # noqa
-except ModuleNotFoundError:
+except ModuleNotFoundError:  # no cov
     pass

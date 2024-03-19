@@ -11,8 +11,12 @@ A_LITTE_WHILE = "max-age=60, public"
 _compress_content_encodings = {".br": "br", ".gz": "gzip"}
 
 
+def never(_path):
+    return False  # no cov
+
+
 class BlackNoise:
-    def __init__(self, application, *, immutable_file_test=lambda *_a: False):
+    def __init__(self, application, *, immutable_file_test=never):
         self._files = {}
         self._prefixes = ()
         self._application = application
@@ -39,10 +43,10 @@ class BlackNoise:
     async def __call__(self, scope, receive, send):
         path = os.path.normpath(scope["path"].removeprefix(scope["root_path"]))
 
-        if not path.startswith(self._prefixes):
+        if not path.startswith(self._prefixes) or scope["type"] != "http":
             response = self._application
 
-        elif scope["type"] != "http" or scope["method"] not in ("GET", "HEAD"):
+        elif scope["method"] not in ("GET", "HEAD"):
             response = PlainTextResponse("Method Not Allowed", status_code=405)
 
         elif file := self._files.get(path):

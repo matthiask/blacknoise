@@ -1,10 +1,12 @@
+import tempfile
 from pathlib import Path
 
 import httpx
 import pytest
 from starlette.responses import PlainTextResponse
 
-from blacknoise._impl import BlackNoise
+from blacknoise import BlackNoise
+from blacknoise.compress import compress
 
 
 async def app(scope, receive, send):
@@ -87,3 +89,21 @@ async def test_accept_encoding(bn):
         assert r.status_code == 200
         assert r.text == "world\n"
         assert "content-encoding" not in r.headers
+
+
+def test_compress():
+    with tempfile.TemporaryDirectory() as root_:
+        root = Path(root_)
+
+        (root / "hello.txt").write_text("hello " * 100)
+        (root / "hello2.txt").write_text("hello")
+        (root / "hello3.jpeg").write_text("")
+        compress(root)
+
+        assert {file.name for file in root.glob("*")} == {
+            "hello.txt",
+            "hello.txt.gz",
+            "hello.txt.br",
+            "hello2.txt",
+            "hello3.jpeg",
+        }

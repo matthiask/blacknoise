@@ -6,7 +6,7 @@ from pathlib import Path
 
 try:
     import brotli
-except ModuleNotFoundError:
+except ModuleNotFoundError:  # no cov
     brotli = None
 
 # Extensions that it's not worth trying to compress
@@ -84,8 +84,8 @@ def try_brotli(path, orig_bytes):
 
 
 def compress(root):
-    for root, _dirs, files in os.walk(args.root):
-        dir = Path(root)
+    for dir_, _dirs, files in os.walk(root):
+        dir = Path(dir_)
         for filename in files:
             path = dir / filename
             if path.suffix in SKIP_COMPRESS_EXTENSIONS:
