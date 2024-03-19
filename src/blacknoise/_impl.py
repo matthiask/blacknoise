@@ -50,35 +50,32 @@ class BlackNoise:
             response = PlainTextResponse("Method Not Allowed", status_code=405)
 
         elif file := self._files.get(path):
-            headers = {
-                "access-control-allow-origin": "*",
-                "cache-control": (
-                    FOREVER if self._immutable_file_test(path) else A_LITTE_WHILE
-                ),
-            }
-            accept_encoding = Headers(scope=scope).get("accept-encoding", "")
-            for suffix, encoding in _compress_content_encodings.items():
-                if encoding not in accept_encoding:
-                    continue
-
-                if file.endswith(suffix):
-                    response = FileResponse(
-                        file, headers=headers | {"content-encoding": encoding}
-                    )
-                    break
-
-                compressed_file = f"{file}{suffix}"
-                if os.path.exists(compressed_file):
-                    response = FileResponse(
-                        compressed_file,
-                        headers=headers | {"content-encoding": encoding},
-                    )
-                    break
-
-            else:
-                response = FileResponse(file, headers=headers)
+            response = _file_response(scope, file, self._immutable_file_test(path))
 
         else:
             response = PlainTextResponse("Not Found", status_code=404)
 
         await response(scope, receive, send)
+
+
+def _file_response(scope, file, immutable):
+    headers = {
+        "access-control-allow-origin": "*",
+        "cache-control": FOREVER if immutable else A_LITTE_WHILE,
+    }
+    accept_encoding = Headers(scope=scope).get("accept-encoding", "")
+    for suffix, encoding in _compress_content_encodings.items():
+        if encoding not in accept_encoding:
+            continue
+
+        if file.endswith(suffix):
+            return FileResponse(file, headers=headers | {"content-encoding": encoding})
+
+        compressed_file = f"{file}{suffix}"
+        if os.path.exists(compressed_file):
+            return FileResponse(
+                compressed_file,
+                headers=headers | {"content-encoding": encoding},
+            )
+
+    return FileResponse(file, headers=headers)
