@@ -41,7 +41,13 @@ class BlackNoise:
                     FOREVER if self._immutable_file_test(path) else A_LITTE_WHILE
                 ),
             }
-            response = FileResponse(file, headers=headers)
+            gz_file = f"{file}.gz"
+            if os.path.exists(gz_file):
+                response = FileResponse(
+                    gz_file, headers=headers | {"content-encoding": "gzip"}
+                )
+            else:
+                response = FileResponse(file, headers=headers)
 
         else:
             response = PlainTextResponse("Not Found", status_code=404)
