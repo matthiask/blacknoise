@@ -43,7 +43,7 @@ class BlackNoise:
     async def __call__(self, scope, receive, send):
         path = os.path.normpath(scope["path"].removeprefix(scope["root_path"]))
 
-        if not path.startswith(self._prefixes) or scope["type"] != "http":
+        if scope["type"] != "http" or not path.startswith(self._prefixes):
             response = self._application
 
         elif scope["method"] not in ("GET", "HEAD"):

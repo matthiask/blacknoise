@@ -45,6 +45,7 @@ dependencies = [
   "brotli",
   "coverage[toml]>=6.5",
   "httpx",
+  "httpx-ws",
   "pytest",
   "pytest-asyncio",
 ]

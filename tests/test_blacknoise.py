@@ -3,15 +3,32 @@ from pathlib import Path
 
 import httpx
 import pytest
+from httpx_ws import aconnect_ws
+from httpx_ws.transport import ASGIWebSocketTransport
+from starlette.applications import Starlette
 from starlette.responses import PlainTextResponse
+from starlette.routing import Route, WebSocketRoute
 
 from blacknoise import BlackNoise
 from blacknoise.compress import compress
 
 
-async def app(scope, receive, send):
-    response = PlainTextResponse(f"Hello from {scope['path']}")
-    await response(scope, receive, send)
+async def http_hello(request):
+    return PlainTextResponse(f"Hello from {request.url.path}")
+
+
+async def ws_hello(websocket):
+    await websocket.accept()
+    await websocket.send_text("Hello World!")
+    await websocket.close()
+
+
+app = Starlette(
+    routes=[
+        Route("/http", http_hello),
+        WebSocketRoute("/ws", ws_hello),
+    ]
+)
 
 
 @pytest.fixture
@@ -67,9 +84,9 @@ async def test_static_file_serving(bn):
         r = await client.get("/static/foo")
         assert r.status_code == 404
 
-        r = await client.get("/blub")
+        r = await client.get("/http")
         assert r.status_code == 200
-        assert r.text == "Hello from /blub"
+        assert r.text == "Hello from /http"
 
 
 @pytest.mark.asyncio
@@ -107,3 +124,14 @@ def test_compress():
             "hello2.txt",
             "hello3.jpeg",
         }
+
+
+@pytest.mark.asyncio
+async def test_ws(bn):
+    async with httpx.AsyncClient(transport=ASGIWebSocketTransport(bn)) as client:
+        http_response = await client.get("http://server/http")
+        assert http_response.status_code == 200
+
+        async with aconnect_ws("http://server/ws", client) as ws:
+            message = await ws.receive_text()
+            assert message == "Hello World!"
