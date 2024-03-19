@@ -44,7 +44,7 @@ async def test_static_file_serving(bn):
 
         r = await client.get("/static/hello2.txt.gz")
         assert r.status_code == 200
-        # assert r.text == "world2\n"  FIXME
+        assert r.text == "world2\n"
 
         r = await client.get("/static/hello3.txt")
         assert r.status_code == 200

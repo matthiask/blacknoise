@@ -7,6 +7,8 @@ from starlette.responses import FileResponse, PlainTextResponse
 FOREVER = f"max-age={10 * 365 * 24 * 60 * 60}, public, immutable"
 A_LITTE_WHILE = "max-age=60, public"
 
+_compress_content_encodings = {".gz": "gzip"}
+
 
 class BlackNoise:
     def __init__(self, application, *, immutable_file_test=lambda *_a: False):
@@ -19,7 +21,6 @@ class BlackNoise:
     def add(self, path, prefix):
         self._prefixes = (*self._prefixes, prefix)
 
-        _compress_suffixes = (".gz",)
         for base, _dirs, files in os.walk(path):
             path_prefix = os.path.join(prefix, base[len(str(path)) :].strip("/"))
             self._files |= {
@@ -30,7 +31,7 @@ class BlackNoise:
                     not file.endswith(suffix)
                     # The uncompressed variant does not exist
                     or file.removesuffix(suffix) not in files
-                    for suffix in _compress_suffixes
+                    for suffix in _compress_content_encodings
                 )
             }
 
@@ -54,6 +55,17 @@ class BlackNoise:
             if os.path.exists(gz_file):
                 response = FileResponse(
                     gz_file, headers=headers | {"content-encoding": "gzip"}
+                )
+            elif encoding := next(
+                (
+                    encoding
+                    for suffix, encoding in _compress_content_encodings.items()
+                    if file.endswith(suffix)
+                ),
+                None,
+            ):
+                response = FileResponse(
+                    file, headers=headers | {"content-encoding": encoding}
                 )
             else:
                 response = FileResponse(file, headers=headers)
