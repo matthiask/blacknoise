@@ -7,8 +7,7 @@ from starlette.responses import FileResponse, PlainTextResponse
 # so we'll follow its lead
 FOREVER = f"max-age={10 * 365 * 24 * 60 * 60}, public, immutable"
 A_LITTE_WHILE = "max-age=60, public"
-
-_compress_content_encodings = {".br": "br", ".gz": "gzip"}
+SUFFIX_ENCODINGS = {".br": "br", ".gz": "gzip"}
 
 
 def never(_path):
@@ -36,7 +35,7 @@ class BlackNoise:
                     not file.endswith(suffix)
                     # The uncompressed variant does not exist
                     or file.removesuffix(suffix) not in files
-                    for suffix in _compress_content_encodings
+                    for suffix in SUFFIX_ENCODINGS
                 )
             }
 
@@ -64,7 +63,7 @@ def _file_response(scope, file, immutable):
         "cache-control": FOREVER if immutable else A_LITTE_WHILE,
     }
     accept_encoding = Headers(scope=scope).get("accept-encoding", "")
-    for suffix, encoding in _compress_content_encodings.items():
+    for suffix, encoding in SUFFIX_ENCODINGS.items():
         if encoding not in accept_encoding:
             continue
 
