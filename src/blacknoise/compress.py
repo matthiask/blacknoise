@@ -51,7 +51,7 @@ def try_gzip(path):
         gz_bytes = f.getvalue()
         orig_len = len(orig_bytes)
         gz_len = len(gz_bytes)
-        if gz_len < orig_len:
+        if gz_len < orig_len * 0.9:
             print(
                 f"{path!s} has been shrinked by {orig_len - gz_len} bytes to {int(100 * len(gz_bytes) / len(orig_bytes))}%"
             )
