@@ -18,11 +18,20 @@ class BlackNoise:
 
     def add(self, path, prefix):
         self._prefixes = (*self._prefixes, prefix)
+
+        _compress_suffixes = (".gz",)
         for base, _dirs, files in os.walk(path):
             path_prefix = os.path.join(prefix, base[len(str(path)) :].strip("/"))
             self._files |= {
                 os.path.join(path_prefix, file): os.path.join(base, file)
                 for file in files
+                if all(
+                    # File is not a compressed file
+                    not file.endswith(suffix)
+                    # The uncompressed variant does not exist
+                    or file.removesuffix(suffix) not in files
+                    for suffix in _compress_suffixes
+                )
             }
 
     async def __call__(self, scope, receive, send):
