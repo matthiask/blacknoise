@@ -7,37 +7,37 @@ from pathlib import Path
 # Extensions that it's not worth trying to compress
 SKIP_COMPRESS_EXTENSIONS = (
     # Images
-    "jpg",
-    "jpeg",
-    "png",
-    "gif",
-    "webp",
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+    ".webp",
     # Compressed files
-    "zip",
-    "gz",
-    "tgz",
-    "bz2",
-    "tbz",
-    "xz",
-    "br",
+    ".zip",
+    ".gz",
+    ".tgz",
+    ".bz2",
+    ".tbz",
+    ".xz",
+    ".br",
     # Flash
-    "swf",
-    "flv",
+    ".swf",
+    ".flv",
     # Fonts
-    "woff",
-    "woff2",
+    ".woff",
+    ".woff2",
     # Video
-    "3gp",
-    "3gpp",
-    "asf",
-    "avi",
-    "m4v",
-    "mov",
-    "mp4",
-    "mpeg",
-    "mpg",
-    "webm",
-    "wmv",
+    ".3gp",
+    ".3gpp",
+    ".asf",
+    ".avi",
+    ".m4v",
+    ".mov",
+    ".mp4",
+    ".mpeg",
+    ".mpg",
+    ".webm",
+    ".wmv",
 )
 
 
@@ -68,10 +68,12 @@ def main():
         for filename in files:
             path = dir / filename
             if path.suffix in SKIP_COMPRESS_EXTENSIONS:
-                print("Skipping {str(path)} because of extension")
+                # print(f"Skipping {str(path)} because of extension")
                 continue
 
             try_gzip(path)
+
+    return 0
 
 
 if __name__ == "__main__":
