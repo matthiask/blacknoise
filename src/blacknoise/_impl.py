@@ -1,7 +1,6 @@
 import os
 
-from starlette.exceptions import HTTPException
-from starlette.responses import FileResponse
+from starlette.responses import FileResponse, PlainTextResponse
 
 # Ten years is what nginx sets a max age if you use 'expires max;'
 # so we'll follow its lead
@@ -30,10 +29,10 @@ class BlackNoise:
         path = os.path.normpath(scope["path"].removeprefix(scope["root_path"]))
 
         if not path.startswith(self._prefixes):
-            await self._application(scope, receive, send)
+            response = self._application
 
         elif scope["type"] != "http" or scope["method"] not in ("GET", "HEAD"):
-            raise HTTPException(status_code=405)
+            response = PlainTextResponse("Method Not Allowed", status_code=405)
 
         elif file := self._files.get(path):
             headers = {
@@ -43,6 +42,8 @@ class BlackNoise:
                 ),
             }
             response = FileResponse(file, headers=headers)
-            await response(scope, receive, send)
+
         else:
-            raise HTTPException(status_code=404)
+            response = PlainTextResponse("Not Found", status_code=404)
+
+        await response(scope, receive, send)
