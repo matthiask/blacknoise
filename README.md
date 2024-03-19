@@ -26,7 +26,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).parent
 
 application = BlackNoise(get_asgi_application())
-application.add(BASE / "static", "/static")
+application.add(BASE_DIR / "static", "/static")
 ```
 
 ## License
