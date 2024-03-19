@@ -10,3 +10,5 @@ def test_app():
 
     assert "/hello/__init__.py" in blacknoise._files
     assert "/hello/foo" not in blacknoise._files
+
+    assert blacknoise._files["/hello/__init__.py"] == str(this / "__init__.py")

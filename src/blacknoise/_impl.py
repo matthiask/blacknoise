@@ -17,9 +17,9 @@ class BlackNoise:
         self._immutable_file_test = immutable_file_test
 
     def add(self, path, prefix):
-        self._prefixes += (prefix,)
+        self._prefixes = (*self._prefixes, prefix)
         for base, _dirs, files in os.walk(path):
-            path_prefix = os.path.join(prefix, base[len(path) :].strip("/"))
+            path_prefix = os.path.join(prefix, base[len(str(path)) :].strip("/"))
             self._files |= {
                 os.path.join(path_prefix, file): os.path.join(base, file)
                 for file in files
