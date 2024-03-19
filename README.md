@@ -54,8 +54,9 @@ Compressing is possible by running:
 python -m blacknoise.compress static/
 ```
 
-`BlackNoise` will try compress non-binary files using gzip, and will serve the
-gzip encoded version if the compression actually results in (significantly)
+`BlackNoise` will try compress non-binary files using gzip or brotli (if the
+[Brotli](ttps://pypi.org/project/Brotli/) library is available), and will serve
+the gzip encoded version if the compression actually results in (significantly)
 smaller files.
 
 Far-future expiry headers can be enabled by passing the `immutable_file_test`

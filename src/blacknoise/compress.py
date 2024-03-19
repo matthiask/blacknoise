@@ -4,6 +4,11 @@ import io
 import os
 from pathlib import Path
 
+try:
+    import brotli
+except ModuleNotFoundError:
+    brotli = None
+
 # Extensions that it's not worth trying to compress
 SKIP_COMPRESS_EXTENSIONS = (
     # Images
@@ -41,23 +46,35 @@ SKIP_COMPRESS_EXTENSIONS = (
 )
 
 
-def try_gzip(path):
-    orig_bytes = path.read_bytes()
+def try_gzip(path, orig_bytes):
     with io.BytesIO() as f:
         with gzip.GzipFile(
             filename="", mode="wb", fileobj=f, compresslevel=9, mtime=0
-        ) as gz_file:
-            gz_file.write(orig_bytes)
-        gz_bytes = f.getvalue()
+        ) as compress_file:
+            compress_file.write(orig_bytes)
+        compress_bytes = f.getvalue()
         orig_len = len(orig_bytes)
-        gz_len = len(gz_bytes)
-        if gz_len < orig_len * 0.9:
+        compress_len = len(compress_bytes)
+        if compress_len < orig_len * 0.9:
             print(
-                f"{path!s} has been shrinked by {orig_len - gz_len} bytes to {int(100 * len(gz_bytes) / len(orig_bytes))}%"
+                f"{path!s} has been shrinked by Gzip by {orig_len - compress_len} bytes to {int(100 * len(compress_bytes) / len(orig_bytes))}%"
             )
-            Path(str(path) + ".gz").write_bytes(gz_bytes)
+            Path(str(path) + ".gz").write_bytes(compress_bytes)
         else:
             print(f"{path!s} has been skipped because of missing gains")
+
+
+def try_brotli(path, orig_bytes):
+    compress_bytes = brotli.compress(orig_bytes)
+    orig_len = len(orig_bytes)
+    compress_len = len(compress_bytes)
+    if compress_len < orig_len * 0.9:
+        print(
+            f"{path!s} has been shrinked by Brotli by {orig_len - compress_len} bytes to {int(100 * len(compress_bytes) / len(orig_bytes))}%"
+        )
+        Path(str(path) + ".br").write_bytes(compress_bytes)
+    else:
+        print(f"{path!s} has been skipped because of missing gains")
 
 
 def compress(root):
@@ -69,7 +86,11 @@ def compress(root):
                 # print(f"Skipping {str(path)} because of extension")
                 continue
 
-            try_gzip(path)
+            orig_bytes = path.read_bytes()
+            try_gzip(path, orig_bytes)
+
+            if brotli:
+                try_brotli(path, orig_bytes)
 
     return 0
 

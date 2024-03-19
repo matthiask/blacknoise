@@ -7,7 +7,7 @@ from starlette.responses import FileResponse, PlainTextResponse
 FOREVER = f"max-age={10 * 365 * 24 * 60 * 60}, public, immutable"
 A_LITTE_WHILE = "max-age=60, public"
 
-_compress_content_encodings = {".gz": "gzip"}
+_compress_content_encodings = {".br": "br", ".gz": "gzip"}
 
 
 class BlackNoise:
@@ -51,22 +51,21 @@ class BlackNoise:
                     FOREVER if self._immutable_file_test(path) else A_LITTE_WHILE
                 ),
             }
-            gz_file = f"{file}.gz"
-            if os.path.exists(gz_file):
-                response = FileResponse(
-                    gz_file, headers=headers | {"content-encoding": "gzip"}
-                )
-            elif encoding := next(
-                (
-                    encoding
-                    for suffix, encoding in _compress_content_encodings.items()
-                    if file.endswith(suffix)
-                ),
-                None,
-            ):
-                response = FileResponse(
-                    file, headers=headers | {"content-encoding": encoding}
-                )
+            for suffix, encoding in _compress_content_encodings.items():
+                if file.endswith(suffix):
+                    response = FileResponse(
+                        file, headers=headers | {"content-encoding": encoding}
+                    )
+                    break
+
+                compressed_file = f"{file}{suffix}"
+                if os.path.exists(compressed_file):
+                    response = FileResponse(
+                        compressed_file,
+                        headers=headers | {"content-encoding": encoding},
+                    )
+                    break
+
             else:
                 response = FileResponse(file, headers=headers)
 
