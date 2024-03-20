@@ -46,7 +46,7 @@ SKIP_COMPRESS_EXTENSIONS = (
 )
 
 
-def _write_if_smaller(path, orig_bytes, compress_bytes, algorithm, suffix):
+def _write_if_smaller(path, orig_bytes, compress_bytes, algorithm, suffix, stats):
     orig_len = len(orig_bytes)
     compress_len = len(compress_bytes)
     if compress_len < orig_len * 0.9:
@@ -54,11 +54,13 @@ def _write_if_smaller(path, orig_bytes, compress_bytes, algorithm, suffix):
             f"{path!s} has been shrinked by {algorithm} by {orig_len - compress_len} bytes to {int(100 * len(compress_bytes) / len(orig_bytes))}%"
         )
         Path(str(path) + suffix).write_bytes(compress_bytes)
+        stats[0] += orig_len
+        stats[1] += compress_len
     else:
         print(f"{path!s} has been skipped because of missing gains")
 
 
-def try_gzip(path, orig_bytes):
+def try_gzip(path, orig_bytes, stats):
     with io.BytesIO() as f:
         with gzip.GzipFile(
             filename="", mode="wb", fileobj=f, compresslevel=9, mtime=0
@@ -70,10 +72,11 @@ def try_gzip(path, orig_bytes):
             f.getvalue(),
             "Gzip",
             ".gz",
+            stats,
         )
 
 
-def try_brotli(path, orig_bytes):
+def try_brotli(path, orig_bytes, stats):
     if not brotli:  # no cov
         return
     _write_if_smaller(
@@ -82,10 +85,20 @@ def try_brotli(path, orig_bytes):
         brotli.compress(orig_bytes),
         "Brotli",
         ".br",
+        stats,
     )
 
 
+def print_stats(stats, algorithm):
+    if stats[0]:
+        print(
+            f"{algorithm} reduced assets of size {stats[0]} by {stats[1]}, an improvement of {int(100 * stats[1] / stats[0])}%"
+        )
+
+
 def compress(root):
+    brotli_stats = [0, 0]
+    gzip_stats = [0, 0]
     for dir_, _dirs, files in os.walk(root):
         dir = Path(dir_)
         for filename in files:
@@ -95,9 +108,11 @@ def compress(root):
                 continue
 
             orig_bytes = path.read_bytes()
-            try_brotli(path, orig_bytes)
-            try_gzip(path, orig_bytes)
+            try_brotli(path, orig_bytes, brotli_stats)
+            try_gzip(path, orig_bytes, gzip_stats)
 
+    print_stats(brotli_stats, "Brotli")
+    print_stats(gzip_stats, "Gzip")
     return 0
 
 
