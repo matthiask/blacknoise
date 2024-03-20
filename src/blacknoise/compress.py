@@ -74,6 +74,8 @@ def try_gzip(path, orig_bytes):
 
 
 def try_brotli(path, orig_bytes):
+    if not brotli:  # no cov
+        return
     _write_if_smaller(
         path,
         orig_bytes,
@@ -93,18 +95,16 @@ def compress(root):
                 continue
 
             orig_bytes = path.read_bytes()
+            try_brotli(path, orig_bytes)
             try_gzip(path, orig_bytes)
-
-            if brotli:
-                try_brotli(path, orig_bytes)
 
     return 0
 
 
-def parse_args():
+def parse_args(args=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("root", help="Path containing static files to compress")
-    return parser.parse_args()
+    return parser.parse_args(args)
 
 
 if __name__ == "__main__":

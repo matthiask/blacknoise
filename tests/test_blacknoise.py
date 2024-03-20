@@ -10,7 +10,7 @@ from starlette.responses import PlainTextResponse
 from starlette.routing import Route, WebSocketRoute
 
 from blacknoise import BlackNoise
-from blacknoise.compress import compress
+from blacknoise.compress import compress, parse_args
 
 
 async def http_hello(request):
@@ -108,6 +108,17 @@ async def test_accept_encoding(bn):
         assert "content-encoding" not in r.headers
 
 
+@pytest.mark.asyncio
+async def test_ws(bn):
+    async with httpx.AsyncClient(transport=ASGIWebSocketTransport(bn)) as client:
+        http_response = await client.get("http://server/http")
+        assert http_response.status_code == 200
+
+        async with aconnect_ws("http://server/ws", client) as ws:
+            message = await ws.receive_text()
+            assert message == "Hello World!"
+
+
 def test_compress():
     with tempfile.TemporaryDirectory() as root_:
         root = Path(root_)
@@ -126,12 +137,9 @@ def test_compress():
         }
 
 
-@pytest.mark.asyncio
-async def test_ws(bn):
-    async with httpx.AsyncClient(transport=ASGIWebSocketTransport(bn)) as client:
-        http_response = await client.get("http://server/http")
-        assert http_response.status_code == 200
+def test_parse_args():
+    with pytest.raises(SystemExit):
+        parse_args([])
 
-        async with aconnect_ws("http://server/ws", client) as ws:
-            message = await ws.receive_text()
-            assert message == "Hello World!"
+    args = parse_args(["hello"])
+    assert args.root == "hello"
