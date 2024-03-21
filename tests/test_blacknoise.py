@@ -10,6 +10,7 @@ from starlette.responses import PlainTextResponse
 from starlette.routing import Route, WebSocketRoute
 
 from blacknoise import BlackNoise
+from blacknoise._impl import _parse_bytes_range
 from blacknoise.compress import compress, parse_args
 
 
@@ -143,3 +144,32 @@ def test_parse_args():
 
     args = parse_args(["hello"])
     assert args.root == "hello"
+
+
+@pytest.mark.asyncio
+async def test_range(bn):
+    assert _parse_bytes_range("words=1-2") is None
+    assert _parse_bytes_range("bytes=1-2") == (1, 2)
+    assert _parse_bytes_range("bytes=2-1") == (2, 1)
+    assert _parse_bytes_range("bytes=1-2, 3-4") is None
+    assert _parse_bytes_range("bogus") is None
+    assert _parse_bytes_range("bytes=bogus") is None
+    assert _parse_bytes_range("bytes=-5") == (-5, None)
+
+    transport = httpx.ASGITransport(app=bn)
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
+        r = await client.get("/static/hello.txt", headers={"range": "words=1-2"})
+        assert r.status_code == 200
+        assert r.text == "world\n"
+
+        r = await client.get("/static/hello.txt", headers={"range": "bytes=2-1"})
+        assert r.status_code == 416
+
+        # The range header is not handled for now, it just falls back to
+        # serving the full response. Allowed by the spec but obviously useless.
+        r = await client.get("/static/hello.txt", headers={"range": "bytes=1-2"})
+        assert r.status_code == 200
+        assert r.text == "world\n"
+        assert "content-range" not in r.headers

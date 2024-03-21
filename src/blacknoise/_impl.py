@@ -57,12 +57,34 @@ class BlackNoise:
         await response(scope, receive, send)
 
 
+def _parse_bytes_range(header):
+    units, _, range_spec = header.partition("=")
+    if units != "bytes":
+        return None
+    start_str, sep, end_str = range_spec.strip().partition("-")
+    if not sep:
+        return None
+    try:
+        if not start_str:
+            return -int(end_str), None
+        return int(start_str), int(end_str) if end_str else None
+    except ValueError:
+        return None
+
+
 def _file_response(scope, file, immutable):
     headers = {
         "access-control-allow-origin": "*",
         "cache-control": FOREVER if immutable else A_LITTE_WHILE,
     }
-    accept_encoding = Headers(scope=scope).get("accept-encoding", "")
+    h = Headers(scope=scope)
+    accept_encoding = h.get("accept-encoding", "")
+
+    if bytes_range := _parse_bytes_range(h.get("range", "")):
+        start, end = bytes_range
+        if start >= end:
+            return PlainTextResponse("Range Not Satisfiable", status_code=416)
+
     for suffix, encoding in SUFFIX_ENCODINGS.items():
         if encoding not in accept_encoding:
             continue
