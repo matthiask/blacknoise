@@ -80,6 +80,9 @@ def _file_response(scope, file, immutable):
     h = Headers(scope=scope)
     accept_encoding = h.get("accept-encoding", "")
 
+    # XXX It would be nice if starlette's FileResponse supported range header
+    # handling out of the box then we wouldn't have to do this.
+    # See https://github.com/encode/starlette/issues/950
     if bytes_range := _parse_bytes_range(h.get("range", "")):
         start, end = bytes_range
         if start >= end:
