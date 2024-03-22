@@ -1,5 +1,6 @@
 import os
 
+import anyio
 from starlette.datastructures import Headers
 from starlette.responses import FileResponse, PlainTextResponse
 
@@ -49,7 +50,9 @@ class BlackNoise:
             response = PlainTextResponse("Method Not Allowed", status_code=405)
 
         elif file := self._files.get(path):
-            response = _file_response(scope, file, self._immutable_file_test(path))
+            response = await _file_response(
+                scope, file, self._immutable_file_test(path)
+            )
 
         else:
             response = PlainTextResponse("Not Found", status_code=404)
@@ -72,8 +75,59 @@ def _parse_bytes_range(header):
         return None
 
 
-def _file_response(scope, file, immutable):
+class SlicedFileResponse(FileResponse):
+    chunk_size = 2 * 1024 * 1024
+
+    def __init__(self, *args, **kwargs):
+        self.start = kwargs.pop("start")
+        self.end = kwargs.pop("end")
+        size = kwargs["stat_result"].st_size
+        kwargs["headers"] = kwargs.get("headers", {}) | {
+            "content-range": f"bytes {self.start}-{self.end}/{size}",
+            "content-length": str(self.end - self.start + 1),
+        }
+        kwargs["status_code"] = 206  # partial content
+        super().__init__(*args, **kwargs)
+
+    async def __call__(self, _scope, _receive, send):
+        await send(
+            {
+                "type": "http.response.start",
+                "status": self.status_code,
+                "headers": self.raw_headers,
+            }
+        )
+
+        size = self.end - self.start + 1
+        async with await anyio.open_file(self.path, mode="rb") as file:
+            await file.seek(self.start)
+            more_body = True
+            while more_body:
+                chunk = await file.read(self.chunk_size)
+                more_body = len(chunk) == self.chunk_size
+
+                if size > 0:
+                    chunk = chunk[:size]
+                    size -= len(chunk)
+
+                if size <= 0:
+                    more_body = False
+
+                await send(
+                    {
+                        "type": "http.response.body",
+                        "body": chunk,
+                        "more_body": more_body,
+                    }
+                )
+
+        if self.background is not None:
+            await self.background()
+
+
+async def _file_response(scope, file, immutable):
     headers = {
+        "accept-ranges": "bytes",
         "access-control-allow-origin": "*",
         "cache-control": FOREVER if immutable else A_LITTE_WHILE,
     }
@@ -85,8 +139,20 @@ def _file_response(scope, file, immutable):
     # See https://github.com/encode/starlette/issues/950
     if bytes_range := _parse_bytes_range(h.get("range", "")):
         start, end = bytes_range
+        stat_result = await anyio.to_thread.run_sync(os.stat, file)
+        size = stat_result.st_size
+        if start < 0:
+            start = max(start + size, 0)
+        if end is None:
+            end = size - 1
+        else:
+            end = min(end, size - 1)
         if start >= end:
             return PlainTextResponse("Range Not Satisfiable", status_code=416)
+
+        return SlicedFileResponse(
+            file, headers=headers, stat_result=stat_result, start=start, end=end
+        )
 
     for suffix, encoding in SUFFIX_ENCODINGS.items():
         if encoding not in accept_encoding:

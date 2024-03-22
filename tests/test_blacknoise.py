@@ -167,9 +167,12 @@ async def test_range(bn):
         r = await client.get("/static/hello.txt", headers={"range": "bytes=2-1"})
         assert r.status_code == 416
 
-        # The range header is not handled for now, it just falls back to
-        # serving the full response. Allowed by the spec but obviously useless.
         r = await client.get("/static/hello.txt", headers={"range": "bytes=1-2"})
-        assert r.status_code == 200
-        assert r.text == "world\n"
-        assert "content-range" not in r.headers
+        assert r.status_code == 206
+        assert r.text == "or"
+        assert r.headers["content-range"] == "bytes 1-2/6"
+
+        r = await client.get("/static/hello.txt", headers={"range": "bytes=-2"})
+        assert r.status_code == 206
+        assert r.text == "d\n"
+        assert r.headers["content-range"] == "bytes 4-5/6"
