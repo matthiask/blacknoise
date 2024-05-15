@@ -1,6 +1,8 @@
 import argparse
+from concurrent.futures import ThreadPoolExecutor, wait
 import gzip
 import io
+from itertools import cycle
 import os
 from pathlib import Path
 
@@ -46,7 +48,7 @@ SKIP_COMPRESS_EXTENSIONS = (
 )
 
 
-def _write_if_smaller(path, orig_bytes, compress_bytes, algorithm, suffix, stats):
+def _write_if_smaller(path, orig_bytes, compress_bytes, algorithm, suffix):
     orig_len = len(orig_bytes)
     compress_len = len(compress_bytes)
     if compress_len < orig_len * 0.9:
@@ -54,13 +56,11 @@ def _write_if_smaller(path, orig_bytes, compress_bytes, algorithm, suffix, stats
             f"{path!s} has been shrinked by {algorithm} by {orig_len - compress_len} bytes to {int(100 * len(compress_bytes) / len(orig_bytes))}%"
         )
         Path(str(path) + suffix).write_bytes(compress_bytes)
-        stats[0] += orig_len
-        stats[1] += compress_len
     else:
         print(f"{path!s} has been skipped because of missing gains")
 
 
-def try_gzip(path, orig_bytes, stats):
+def try_gzip(path, orig_bytes):
     with io.BytesIO() as f:
         with gzip.GzipFile(
             filename="", mode="wb", fileobj=f, compresslevel=9, mtime=0
@@ -72,11 +72,10 @@ def try_gzip(path, orig_bytes, stats):
             f.getvalue(),
             "Gzip",
             ".gz",
-            stats,
         )
 
 
-def try_brotli(path, orig_bytes, stats):
+def try_brotli(path, orig_bytes):
     if not brotli:  # no cov
         return
     _write_if_smaller(
@@ -85,35 +84,33 @@ def try_brotli(path, orig_bytes, stats):
         brotli.compress(orig_bytes),
         "Brotli",
         ".br",
-        stats,
     )
 
 
-def print_stats(stats, algorithm):
-    if stats[0]:
-        print(
-            f"{algorithm} reduced assets of size {stats[0]} by {stats[1]}, an improvement of {int(100 * stats[1] / stats[0])}%"
-        )
-
-
 def compress(root):
-    brotli_stats = [0, 0]
-    gzip_stats = [0, 0]
+    workers = os.cpu_count()
+    paths = [[] for _ in range(workers)]
+    paths_ = cycle(paths)
+
     for dir_, _dirs, files in os.walk(root):
         dir = Path(dir_)
         for filename in files:
             path = dir / filename
-            if path.suffix in SKIP_COMPRESS_EXTENSIONS:
-                # print(f"Skipping {str(path)} because of extension")
-                continue
+            if path.suffix not in SKIP_COMPRESS_EXTENSIONS:
+                next(paths_).append(path)
 
-            orig_bytes = path.read_bytes()
-            try_brotli(path, orig_bytes, brotli_stats)
-            try_gzip(path, orig_bytes, gzip_stats)
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = [executor.submit(_compress_paths, p) for p in paths]
+        wait(futures)
 
-    print_stats(brotli_stats, "Brotli")
-    print_stats(gzip_stats, "Gzip")
     return 0
+
+
+def _compress_paths(paths):
+    for path in paths:
+        orig_bytes = path.read_bytes()
+        try_brotli(path, orig_bytes)
+        try_gzip(path, orig_bytes)
 
 
 def parse_args(args=None):
