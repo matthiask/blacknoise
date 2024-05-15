@@ -10,7 +10,7 @@ description = ""
 readme = "README.md"
 keywords = [
 ]
-license = {text="MIT"}
+license = { text = "MIT" }
 authors = [
   { name = "Matthias Kestenholz", email = "mk@feinheit.ch" },
 ]
@@ -32,10 +32,9 @@ dynamic = [
 dependencies = [
   "starlette",
 ]
-[project.urls]
-Documentation = "https://github.com/matthiask/blacknoise#readme"
-Issues = "https://github.com/matthiask/blacknoise/issues"
-Source = "https://github.com/matthiask/blacknoise"
+urls.Documentation = "https://github.com/matthiask/blacknoise#readme"
+urls.Issues = "https://github.com/matthiask/blacknoise/issues"
+urls.Source = "https://github.com/matthiask/blacknoise"
 
 [tool.hatch.version]
 path = "src/blacknoise/__about__.py"
@@ -62,14 +61,18 @@ cov = [
 ]
 
 [[tool.hatch.envs.all.matrix]]
-python = ["3.9", "3.10", "3.11", "3.12"]
+python = [
+  "3.9",
+  "3.10",
+  "3.11",
+  "3.12",
+]
 
 [tool.ruff]
-fix = true
 target-version = "py39"
 
-[tool.ruff.lint]
-select = [
+fix = true
+lint.select = [
   "ARG",
   "B",
   "C",
@@ -95,35 +98,44 @@ select = [
   "W",
   "YTT",
 ]
-ignore = [
-  # Stop warning about line lengths
-  "E501",
-  # Allow non-abstract empty methods in abstract base classes
-  "B027",
-  # Allow boolean positional values in function calls, like `dict.get(... True)`
-  "FBT003",
-  # Ignore checks for possible passwords
-  "S105", "S106", "S107",
-  # Ignore complexity
-  "C901", "PLR0911", "PLR0912", "PLR0913", "PLR0915",
+lint.per-file-ignores."tests/**/*" = [
+  "PLR2004",
+  "S101",
+  "TID252",
 ]
-unfixable = [
+lint.unfixable = [
   # Don't touch unused imports
   "F401",
 ]
-
-[tool.ruff.lint.isort]
-known-first-party = ["blacknoise"]
-
-[tool.ruff.lint.flake8-tidy-imports]
-ban-relative-imports = "all"
-
-[tool.ruff.lint.per-file-ignores]
+lint.flake8-tidy-imports.ban-relative-imports = "all"
 # Tests can use magic values, assertions, and relative imports
-"tests/**/*" = ["PLR2004", "S101", "TID252"]
+lint.isort.known-first-party = [
+  "blacknoise",
+]
+lint.ignore = [
+  # Allow non-abstract empty methods in abstract base classes
+  "B027",
+  # Ignore complexity
+  "C901",
+  # Stop warning about line lengths
+  "E501",
+  # Allow boolean positional values in function calls, like `dict.get(... True)`
+  "FBT003",
+  "PLR0911",
+  "PLR0912",
+  "PLR0913",
+  "PLR0915",
+  # Ignore checks for possible passwords
+  "S105",
+  "S106",
+  "S107",
+]
 
 [tool.coverage.run]
-source_pkgs = ["blacknoise", "tests"]
+source_pkgs = [
+  "blacknoise",
+  "tests",
+]
 branch = true
 parallel = true
 omit = [
@@ -131,8 +143,14 @@ omit = [
 ]
 
 [tool.coverage.paths]
-blacknoise = ["src/blacknoise", "*/blacknoise/src/blacknoise"]
-tests = ["tests", "*/blacknoise/tests"]
+blacknoise = [
+  "src/blacknoise",
+  "*/blacknoise/src/blacknoise",
+]
+tests = [
+  "tests",
+  "*/blacknoise/tests",
+]
 
 [tool.coverage.report]
 exclude_lines = [

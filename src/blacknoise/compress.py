@@ -1,9 +1,8 @@
 import argparse
-from concurrent.futures import ThreadPoolExecutor, wait
 import gzip
 import io
-from itertools import cycle
 import os
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 try:
@@ -87,30 +86,25 @@ def try_brotli(path, orig_bytes):
     )
 
 
-def compress(root):
-    workers = os.cpu_count()
-    paths = [[] for _ in range(workers)]
-    paths_ = cycle(paths)
+def _compress_path(path):
+    orig_bytes = path.read_bytes()
+    try_brotli(path, orig_bytes)
+    try_gzip(path, orig_bytes)
 
+
+def _paths(root):
     for dir_, _dirs, files in os.walk(root):
         dir = Path(dir_)
         for filename in files:
             path = dir / filename
             if path.suffix not in SKIP_COMPRESS_EXTENSIONS:
-                next(paths_).append(path)
+                yield path
 
-    with ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = [executor.submit(_compress_paths, p) for p in paths]
-        wait(futures)
 
+def compress(root):
+    with ThreadPoolExecutor() as executor:
+        executor.map(_compress_path, _paths(root))
     return 0
-
-
-def _compress_paths(paths):
-    for path in paths:
-        orig_bytes = path.read_bytes()
-        try_brotli(path, orig_bytes)
-        try_gzip(path, orig_bytes)
 
 
 def parse_args(args=None):
