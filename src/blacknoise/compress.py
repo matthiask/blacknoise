@@ -51,12 +51,13 @@ def _write_if_smaller(path, orig_bytes, compress_bytes, algorithm, suffix):
     orig_len = len(orig_bytes)
     compress_len = len(compress_bytes)
     if compress_len < orig_len * 0.9:
+        compress_improvement = (compress_len - orig_len) / orig_len
         print(
-            f"{path!s} has been shrinked by {algorithm} by {orig_len - compress_len} bytes to {int(100 * len(compress_bytes) / len(orig_bytes))}%"
+            f"{path!s}: {algorithm} compressed {orig_len} to {compress_len} bytes ({int(100 * compress_improvement)}%)"
         )
         Path(str(path) + suffix).write_bytes(compress_bytes)
     else:
-        print(f"{path!s} has been skipped because of missing gains")
+        print(f"{path!s}: {algorithm} didn't produce useful compression results")
 
 
 def try_gzip(path, orig_bytes):
