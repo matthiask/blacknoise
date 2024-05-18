@@ -8,13 +8,8 @@ file serving inspired by [whitenoise](https://github.com/evansd/whitenoise/)
 and following the principles of [low maintenance
 software](https://406.ch/writing/low-maintenance-software/).
 
-**This is pre-alpha software and everything is subject to change. I'm not even
-sure if blacknoise should exist at all or if the energy wouldn't be better
-spent improving whitenoise or other tools. Feedback and contributions are very
-welcome though!**
 
-
-## Using blacknoise with Django to serve static files
+## Using blacknoise to serve static files
 
 Install blacknoise into your Python environment:
 
@@ -35,10 +30,16 @@ application = BlackNoise(get_asgi_application())
 application.add(BASE_DIR / "static", "/static")
 ```
 
+The example uses Django, but you can wrap any ASGI application.
+
 `BlackNoise` will automatically handle all paths below the prefixes added, and
 either return the files or return 404 errors if files do not exist. The files
 are added on server startup, which also means that `BlackNoise` only knows
 about files which existed at that particular point in time.
+
+`BlackNoise` doesn't watch the added folders for changes; if you add new files
+you have to restart the server, otherwise those files aren't served. It doesn't
+cache file contents though, so changes to files are directly picked up.
 
 ## Improving performance
 
@@ -47,6 +48,8 @@ as nginx and others. Sometimes it doesn't matter much if the app is behind a
 caching reverse proxy or behind a content delivery network anyway. To further
 support this use case `BlackNoise` can be configured to serve media files with
 far-future expiry headers and has support for serving compressed assets.
+
+### Serving pre-compressed assets
 
 Compressing is possible by running:
 
@@ -57,7 +60,10 @@ python -m blacknoise.compress static/
 `BlackNoise` will try compress non-binary files using gzip or brotli (if the
 [Brotli](ttps://pypi.org/project/Brotli/) library is available), and will serve
 the compressed version if the compression actually results in (significantly)
-smaller files and if the client also supports it.
+smaller files and if the client also supports it. Files are compressed in
+parallel for faster completion times.
+
+### Setting far-future expiry headers
 
 Far-future expiry headers can be enabled by passing the `immutable_file_test`
 callable to the `BlackNoise` constructor:
@@ -79,4 +85,5 @@ such as `webpack` and others.
 
 ## License
 
-`blacknoise` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
+`blacknoise` is distributed under the terms of the
+[MIT](https://spdx.org/licenses/MIT.html) license.
