@@ -6,7 +6,7 @@ requires = [
 
 [project]
 name = "blacknoise"
-description = ""
+description = "An ASGI app for static file serving inspired by whitenoise"
 readme = "README.md"
 keywords = [
 ]
