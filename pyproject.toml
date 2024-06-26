@@ -98,20 +98,6 @@ lint.select = [
   "W",
   "YTT",
 ]
-lint.per-file-ignores."tests/**/*" = [
-  "PLR2004",
-  "S101",
-  "TID252",
-]
-lint.unfixable = [
-  # Don't touch unused imports
-  "F401",
-]
-lint.flake8-tidy-imports.ban-relative-imports = "all"
-# Tests can use magic values, assertions, and relative imports
-lint.isort.known-first-party = [
-  "blacknoise",
-]
 lint.ignore = [
   # Allow non-abstract empty methods in abstract base classes
   "B027",
@@ -129,6 +115,21 @@ lint.ignore = [
   "S105",
   "S106",
   "S107",
+]
+
+lint.per-file-ignores."tests/**/*" = [
+  "PLR2004",
+  "S101",
+  "TID252",
+]
+lint.unfixable = [
+  # Don't touch unused imports
+  "F401",
+]
+lint.flake8-tidy-imports.ban-relative-imports = "all"
+# Tests can use magic values, assertions, and relative imports
+lint.isort.known-first-party = [
+  "blacknoise",
 ]
 
 [tool.coverage.run]
