@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Stopped interleaving `print()` statements from different compression threads.
+- Started running the testsuite using GitHub actions.
 
 ## 1.0 (2024-05-18)
 
