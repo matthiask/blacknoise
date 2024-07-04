@@ -54,8 +54,7 @@ def _write_if_smaller(path, orig_bytes, compress_bytes, algorithm, suffix):
         compress_improvement = (compress_len - orig_len) / orig_len
         Path(str(path) + suffix).write_bytes(compress_bytes)
         return f"{path!s}: {algorithm} compressed {orig_len} to {compress_len} bytes ({int(100 * compress_improvement)}%)"
-    else:
-        return f"{path!s}: {algorithm} didn't produce useful compression results"
+    return f"{path!s}: {algorithm} didn't produce useful compression results"
 
 
 def try_gzip(path, orig_bytes):
@@ -75,7 +74,7 @@ def try_gzip(path, orig_bytes):
 
 def try_brotli(path, orig_bytes):
     if not brotli:  # no cov
-        return
+        return ""
     return _write_if_smaller(
         path,
         orig_bytes,
@@ -105,7 +104,7 @@ def _paths(root):
 def compress(root):
     with ThreadPoolExecutor() as executor:
         for result in executor.map(_compress_path, _paths(root)):
-            print("\n".join(result))
+            print("\n".join(filter(None, result)))
     return 0
 
 
