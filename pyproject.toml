@@ -30,7 +30,7 @@ dynamic = [
   "version",
 ]
 dependencies = [
-  "starlette",
+  "starlette>=0.39",
 ]
 urls.Documentation = "https://github.com/matthiask/blacknoise#readme"
 urls.Issues = "https://github.com/matthiask/blacknoise/issues"

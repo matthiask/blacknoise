@@ -5,6 +5,8 @@
 - Stopped interleaving `print()` statements from different compression threads.
 - Started running the testsuite using GitHub actions.
 - Don't crash when compressing if brotli isn't installed.
+- Replaced our own HTTP Range support with the implementation added to
+  Starlette 0.39.
 
 ## 1.0 (2024-05-18)
 
