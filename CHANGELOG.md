@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.1 (2024-09-23)
+
 - Stopped interleaving `print()` statements from different compression threads.
 - Started running the testsuite using GitHub actions.
 - Don't crash when compressing if brotli isn't installed.
