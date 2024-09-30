@@ -66,12 +66,12 @@ async def _file_response(scope, file, immutable):
         "cache-control": FOREVER if immutable else A_LITTE_WHILE,
     }
     h = Headers(scope=scope)
-    accept_encoding = h.get("accept-encoding", "")
 
     # Defer to Starlette when we get a HTTP Range request.
     if h.get("range"):
         return FileResponse(file, headers=headers)
 
+    accept_encoding = h.get("accept-encoding", "")
     for suffix, encoding in SUFFIX_ENCODINGS.items():
         if encoding not in accept_encoding:
             continue
