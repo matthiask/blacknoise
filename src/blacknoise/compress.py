@@ -1,7 +1,6 @@
 import argparse
 import gzip
 import io
-import os
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -93,8 +92,7 @@ def _compress_path(path):
 
 
 def _paths(root):
-    for dir_, _dirs, files in os.walk(root):
-        dir = Path(dir_)
+    for dir, _dirs, files in Path(root).walk():
         for filename in files:
             path = dir / filename
             if path.suffix not in SKIP_COMPRESS_EXTENSIONS:
