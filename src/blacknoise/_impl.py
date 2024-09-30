@@ -3,7 +3,7 @@ import os
 from starlette.datastructures import Headers
 from starlette.responses import FileResponse, PlainTextResponse
 
-# Ten years is what nginx sets a max age if you use 'expires max;'
+# Ten years is what nginx sets as max age if you use 'expires max;'
 # so we'll follow its lead
 FOREVER = f"max-age={10 * 365 * 24 * 60 * 60}, public, immutable"
 A_LITTE_WHILE = "max-age=60, public"
