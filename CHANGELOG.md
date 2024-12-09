@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added Python 3.13 to the CI.
+- Updated our pre-commit hooks.
+
 ## 1.1 (2024-09-23)
 
 - Stopped interleaving `print()` statements from different compression threads.
