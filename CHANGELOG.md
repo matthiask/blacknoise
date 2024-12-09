@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.2 (2024-12-09)
+
 - Added Python 3.13 to the CI.
 - Updated our pre-commit hooks.
 
