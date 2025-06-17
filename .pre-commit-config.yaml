@@ -14,7 +14,7 @@ repos:
       - id: mixed-line-ending
       - id: trailing-whitespace
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.8.2"
+    rev: "v0.11.13"
     hooks:
       - id: ruff
         args: [--unsafe-fixes]
@@ -28,10 +28,10 @@ repos:
         args: [--no-semi]
         exclude: "^conf/|.*\\.html$"
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: v2.5.0
+    rev: v2.6.0
     hooks:
       - id: pyproject-fmt
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.23
+    rev: v0.24.1
     hooks:
       - id: validate-pyproject
