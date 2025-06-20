@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Bumped the starlette dependency to 0.47 so that blacknoise automatically uses
+  the pathsend ASGI extension if supported by the server.
+
 ## 1.2 (2024-12-09)
 
 - Added Python 3.13 to the CI.
