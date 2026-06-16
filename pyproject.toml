@@ -13,12 +13,11 @@ license = { text = "MIT" }
 authors = [
   { name = "Matthias Kestenholz", email = "mk@feinheit.ch" },
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -40,7 +39,6 @@ urls.Source = "https://github.com/matthiask/blacknoise"
 [tool.hatch]
 version.path = "src/blacknoise/__about__.py"
 envs.all.matrix = [ { python = [
-  "3.9",
   "3.10",
   "3.11",
   "3.12",
@@ -67,7 +65,7 @@ envs.default.scripts.test = "pytest {args:tests}"
 envs.default.scripts.test-cov = "coverage run -m pytest {args:tests}"
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 fix = true
 lint.select = [
   "ARG",
