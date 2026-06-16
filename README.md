@@ -94,7 +94,7 @@ prompted the creation of blacknoise.
 whitenoise with that ASGI pull request merged and continued development on top.
 It supports development setups and is a more complete drop-in replacement for
 whitenoise. blacknoise takes a different approach: it delegates to
-[Starlette](https://github.com/encode/starlette) for the actual file serving and
+[Starlette](https://github.com/Kludex/starlette) for the actual file serving and
 intentionally does as little as possible, keeping the codebase small and easy to
 maintain.
 
