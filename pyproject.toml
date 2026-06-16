@@ -8,8 +8,7 @@ requires = [
 name = "blacknoise"
 description = "An ASGI app for static file serving inspired by whitenoise"
 readme = "README.md"
-keywords = [
-]
+keywords = []
 license = { text = "MIT" }
 authors = [
   { name = "Matthias Kestenholz", email = "mk@feinheit.ch" },
@@ -24,6 +23,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
@@ -37,11 +37,17 @@ urls.Documentation = "https://github.com/matthiask/blacknoise#readme"
 urls.Issues = "https://github.com/matthiask/blacknoise/issues"
 urls.Source = "https://github.com/matthiask/blacknoise"
 
-[tool.hatch.version]
-path = "src/blacknoise/__about__.py"
-
-[tool.hatch.envs.default]
-dependencies = [
+[tool.hatch]
+version.path = "src/blacknoise/__about__.py"
+envs.all.matrix = [ { python = [
+  "3.9",
+  "3.10",
+  "3.11",
+  "3.12",
+  "3.13",
+  "3.14",
+] } ]
+envs.default.dependencies = [
   "brotli",
   "coverage[toml]>=6.5",
   "httpx",
@@ -49,30 +55,19 @@ dependencies = [
   "pytest",
   "pytest-asyncio",
 ]
-[tool.hatch.envs.default.scripts]
-test = "pytest {args:tests}"
-test-cov = "coverage run -m pytest {args:tests}"
-cov-report = [
-  "- coverage combine",
-  "coverage report -m",
-]
-cov = [
+envs.default.scripts.cov = [
   "test-cov",
   "cov-report",
 ]
-
-[[tool.hatch.envs.all.matrix]]
-python = [
-  "3.9",
-  "3.10",
-  "3.11",
-  "3.12",
-  "3.13",
+envs.default.scripts.cov-report = [
+  "- coverage combine",
+  "coverage report -m",
 ]
+envs.default.scripts.test = "pytest {args:tests}"
+envs.default.scripts.test-cov = "coverage run -m pytest {args:tests}"
 
 [tool.ruff]
 target-version = "py39"
-
 fix = true
 lint.select = [
   "ARG",
@@ -118,7 +113,6 @@ lint.ignore = [
   "S106",
   "S107",
 ]
-
 lint.per-file-ignores."tests/**/*" = [
   "PLR2004",
   "S101",
@@ -134,30 +128,26 @@ lint.isort.known-first-party = [
   "blacknoise",
 ]
 
-[tool.coverage.run]
-source_pkgs = [
+[tool.coverage]
+run.branch = true
+run.omit = [
+  "src/blacknoise/__about__.py",
+]
+run.parallel = true
+run.source_pkgs = [
   "blacknoise",
   "tests",
 ]
-branch = true
-parallel = true
-omit = [
-  "src/blacknoise/__about__.py",
-]
-
-[tool.coverage.paths]
-blacknoise = [
+paths.blacknoise = [
   "src/blacknoise",
   "*/blacknoise/src/blacknoise",
 ]
-tests = [
+paths.tests = [
   "tests",
   "*/blacknoise/tests",
 ]
-
-[tool.coverage.report]
-exclude_lines = [
-  "no cov",
+report.exclude_lines = [
   "if __name__ == .__main__.:",
   "if TYPE_CHECKING:",
+  "no cov",
 ]
