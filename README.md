@@ -83,6 +83,30 @@ a hash based upon the contents of the static file. Such hashes can be added by
 Django's `ManifestStaticFilesStorage` or by appropriately configuring bundlers
 such as `webpack` and others.
 
+## Comparison with similar projects
+
+**[whitenoise](https://github.com/evansd/whitenoise/)** is the original inspiration
+for blacknoise. whitenoise only supports WSGI; an [ASGI pull
+request](https://github.com/evansd/whitenoise/pull/359) was never merged, which
+prompted the creation of blacknoise.
+
+**[ServeStatic](https://github.com/Archmonger/ServeStatic)** is effectively
+whitenoise with that ASGI pull request merged and continued development on top.
+It supports development setups and is a more complete drop-in replacement for
+whitenoise. blacknoise takes a different approach: it delegates to
+[Starlette](https://github.com/encode/starlette) for the actual file serving and
+intentionally does as little as possible, keeping the codebase small and easy to
+maintain.
+
+If you need development-mode static file serving or a feature-rich whitenoise
+replacement, ServeStatic may be a better fit. If you value simplicity and are happy
+letting your ASGI framework or a reverse proxy handle the rest, blacknoise is for
+you.
+
+If you are already using [granian](https://github.com/emmett-framework/granian) as
+your server, consider using its built-in static file serving instead. It handles
+files directly without any additional Python layer.
+
 ## License
 
 `blacknoise` is distributed under the terms of the
